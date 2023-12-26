@@ -139,7 +139,7 @@ namespace ToySerialController
             _device?.Dispose();
             _device = null;
 
-            _device = new TCodeDevice();
+            _device = new TCodeDevice(this);
             _device.CreateUI(_builder);
         }
 
