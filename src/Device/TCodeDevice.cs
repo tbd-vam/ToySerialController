@@ -50,9 +50,9 @@ namespace ToySerialController
             RTarget = new float[3];
             ETarget = new float[9];
 
-            XCmd = new[] { FloatParam('L', 0, .5f), FloatParam('L', 1, .5f), FloatParam('L', 2, .5f) };
-            RCmd = new[] { FloatParam('R', 0, .5f), FloatParam('R', 1, .5f), FloatParam('R', 2, .5f) };
-            ECmd = new[] { FloatParam('V', 0, .5f), FloatParam('A', 0, .5f), FloatParam('A', 1, .5f), FloatParam('A', 2, .5f) };
+            XCmd = new[] { FloatParam("L0"), FloatParam("L1"), FloatParam("L2") };
+            RCmd = new[] { FloatParam("R0"), FloatParam("R1"), FloatParam("R2") };
+            ECmd = new[] { FloatParam("V0"), FloatParam("A0"), FloatParam("A1"), FloatParam("A2") };
 
             LastXCmd = new float[] { float.NaN, float.NaN, float.NaN };
             LastRCmd = new float[] { float.NaN, float.NaN, float.NaN };
@@ -63,9 +63,9 @@ namespace ToySerialController
             _deviceReportBuilder = new StringBuilder();
         }
 
-        private JSONStorableFloat FloatParam(char axis, int index, float value)
+        private JSONStorableFloat FloatParam(string name, float value = .5f)
         {
-            var param = new JSONStorableFloat($"{axis}{index}", value, 0f, 1f);
+            var param = new JSONStorableFloat(name, value, 0f, 1f);
             _parent.RegisterFloat(param);
             return param;
         }
