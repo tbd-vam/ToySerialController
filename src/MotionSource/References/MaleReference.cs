@@ -95,7 +95,7 @@ namespace ToySerialController.MotionSource
                 if (pelvisRight == null || pelvidLeft == null || pelvisMid == null)
                     PlaneNormal = Up;
                 else
-                    PlaneNormal = Vector3.Cross(pelvisMid.position - pelvidLeft.position, pelvisMid.position - pelvisRight.position).normalized;
+                    PlaneNormal = -Vector3.Cross(pelvisMid.position - pelvidLeft.position, pelvisMid.position - pelvisRight.position).normalized;
             }
 
             return true;
