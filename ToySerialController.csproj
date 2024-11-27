@@ -114,6 +114,7 @@
     <Compile Include="src\Device\TCodeDevice.UI.cs" />
     <Compile Include="src\Device\IDevice.cs" />
     <Compile Include="src\MotionSource\AbstractAssetBase.cs" />
+    <Compile Include="src\MotionSource\References\AbstractReference.cs" />
     <Compile Include="src\MotionSource\References\AssetReference.cs" />
     <Compile Include="src\MotionSource\References\DildoReference.cs" />
     <Compile Include="src\MotionSource\References\IMotionSourceReference.cs" />

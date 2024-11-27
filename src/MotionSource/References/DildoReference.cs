@@ -1,4 +1,6 @@
-﻿using SimpleJSON;
+﻿using DebugUtils;
+using SimpleJSON;
+using System.Collections.Generic;
 using System.Linq;
 using ToySerialController.UI;
 using ToySerialController.Utils;
@@ -6,7 +8,7 @@ using UnityEngine;
 
 namespace ToySerialController.MotionSource
 {
-    public class DildoReference : IMotionSourceReference
+    public class DildoReference : AbstractReference
     {
         private Atom _dildoAtom;
 
@@ -15,43 +17,43 @@ namespace ToySerialController.MotionSource
 
         private SuperController Controller => SuperController.singleton;
 
-        public Vector3 Position { get; private set; }
-        public Vector3 Up { get; private set; }
-        public Vector3 Right { get; private set; }
-        public Vector3 Forward { get; private set; }
-        public float Length { get; private set; }
-        public float Radius { get; private set; }
-        public Vector3 PlaneNormal { get; private set; }
-
-        public void CreateUI(IUIBuilder builder)
+        public override void CreateUI(IUIBuilder builder)
         {
             DildoChooser = builder.CreatePopup("MotionSource:Dildo", "Select Dildo", null, null, DildoChooserCallback);
             DildoBaseOffset = builder.CreateSlider("MotionSource:DildoBaseOffset", "Dildo base offset", 0, -0.05f, 0.05f, true, true);
 
+            base.CreateUI(builder);
+
             FindDildos();
         }
 
-        public void DestroyUI(IUIBuilder builder)
+        public override void DestroyUI(IUIBuilder builder)
         {
             builder.Destroy(DildoChooser);
             builder.Destroy(DildoBaseOffset);
+
+            base.DestroyUI(builder);
         }
 
-        public void StoreConfig(JSONNode config)
+        public override void StoreConfig(JSONNode config)
         {
             config.Store(DildoChooser);
             config.Store(DildoBaseOffset);
+
+            base.StoreConfig(config);
         }
 
-        public void RestoreConfig(JSONNode config)
+        public override void RestoreConfig(JSONNode config)
         {
             config.Restore(DildoChooser);
             config.Restore(DildoBaseOffset);
 
+            base.RestoreConfig(config);
+
             FindDildos(DildoChooser.val);
         }
 
-        public bool Update()
+        public override bool Update()
         {
             if (_dildoAtom == null || !_dildoAtom.on)
                 return false;
@@ -72,9 +74,20 @@ namespace ToySerialController.MotionSource
             Radius = midCollider.radius;
 
             Up = (tipPosition - midPosition).normalized;
-            Right = -baseCollider.transform.right;
-            Forward = Vector3.Cross(Up, Right);
-            PlaneNormal = baseCollider.transform.up;
+
+            if (FixedNormalPlane.val)
+            {
+                var rotation = Quaternion.Euler(NormalPlaneOverrideX.val, NormalPlaneOverrideY.val, NormalPlaneOverrideZ.val);
+                Right = rotation * _dildoAtom.transform.right;
+                Forward = rotation * _dildoAtom.transform.up;
+                PlaneNormal = rotation * _dildoAtom.transform.forward;
+            }
+            else
+            {
+                Right = -baseCollider.transform.right;
+                Forward = Vector3.Cross(Up, Right);
+                PlaneNormal = baseCollider.transform.up;
+            }
 
             return true;
         }
@@ -101,6 +114,6 @@ namespace ToySerialController.MotionSource
             DildoChooser.valNoCallback = _dildoAtom == null ? "None" : s;
         }
 
-        public void Refresh() => FindDildos(DildoChooser.val);
+        public override void Refresh() => FindDildos(DildoChooser.val);
     }
 }
