@@ -18,6 +18,7 @@ namespace ToySerialController.MotionSource
         Vector3 TargetUp { get; }
         Vector3 TargetRight { get; }
         Vector3 TargetForward { get; }
+        bool RelativeToNormalPlane { get; }
 
         bool Update();
         void OnSceneChanging();

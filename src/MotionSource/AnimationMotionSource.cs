@@ -35,6 +35,8 @@ namespace ToySerialController.MotionSource
         public override Vector3 TargetRight => _targetRight;
         public override Vector3 TargetForward => _targetForward;
 
+        public override bool RelativeToNormalPlane => false;
+
         public override void CreateUI(IUIBuilder builder)
         {
             AnimationChooser = builder.CreatePopup("MotionSource:Animation", "Select Animation", null, null, AnimationChooserCallback);

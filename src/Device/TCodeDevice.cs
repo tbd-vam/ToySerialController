@@ -273,6 +273,8 @@ namespace ToySerialController
             var radius = motionSource.ReferenceRadius * ReferenceRadiusScaleSlider.val;
             var referenceEnding = motionSource.ReferencePosition + motionSource.ReferenceUp * length;
             var diffPosition = motionSource.TargetPosition - motionSource.ReferencePosition;
+            var planeForward = Vector3.ProjectOnPlane(motionSource.ReferenceForward, motionSource.ReferencePlaneNormal).normalized;
+            var planeRight = Vector3.ProjectOnPlane(motionSource.ReferenceRight, motionSource.ReferencePlaneNormal).normalized;
 
             for (var i = 0; i < 5; i++)
                 DebugDraw.DrawCircle(Vector3.Lerp(motionSource.ReferencePosition, referenceEnding, i / 4.0f), motionSource.ReferenceUp, motionSource.ReferenceRight, Color.grey, radius);
@@ -287,10 +289,10 @@ namespace ToySerialController
                     XTarget[0] = 1 - Mathf.Clamp01((closestPoint - motionSource.ReferencePosition).magnitude / length);
 
                     var diffOnPlane = Vector3.ProjectOnPlane(diffPosition, motionSource.ReferencePlaneNormal);
-                    var rightOffset = Vector3.Project(diffOnPlane, motionSource.ReferenceRight);
-                    var forwardOffset = Vector3.Project(diffOnPlane, motionSource.ReferenceForward);
-                    XTarget[1] = forwardOffset.magnitude * Mathf.Sign(Vector3.Dot(forwardOffset, motionSource.ReferenceForward));
-                    XTarget[2] = rightOffset.magnitude * Mathf.Sign(Vector3.Dot(rightOffset, motionSource.ReferenceRight));
+                    var rightOffset = Vector3.Project(diffOnPlane, planeRight);
+                    var forwardOffset = Vector3.Project(diffOnPlane, planeForward);
+                    XTarget[1] = forwardOffset.magnitude * Mathf.Sign(Vector3.Dot(forwardOffset, planeForward));
+                    XTarget[2] = rightOffset.magnitude * Mathf.Sign(Vector3.Dot(rightOffset, planeRight));
                 }
                 else
                 {
@@ -299,13 +301,26 @@ namespace ToySerialController
                     XTarget[2] = 0;
                 }
 
-                var correctedRight = Vector3.ProjectOnPlane(motionSource.TargetRight, motionSource.ReferenceUp);
-                if (Vector3.Dot(correctedRight, motionSource.ReferenceRight) < 0)
-                    correctedRight -= 2 * Vector3.Project(correctedRight, motionSource.ReferenceRight);
+                if (motionSource.RelativeToNormalPlane)
+                {
+                    var correctedRight = Vector3.ProjectOnPlane(motionSource.TargetRight, motionSource.ReferencePlaneNormal);
+                    if (Vector3.Dot(correctedRight, planeRight) < 0)
+                        correctedRight -= 2 * Vector3.Project(correctedRight, planeRight);
 
-                RTarget[0] = Vector3.SignedAngle(motionSource.ReferenceRight, correctedRight, motionSource.ReferenceUp) / 180;
-                RTarget[1] = -Vector3.SignedAngle(motionSource.ReferenceUp, Vector3.ProjectOnPlane(motionSource.TargetUp, motionSource.ReferenceForward), motionSource.ReferenceForward) / 90;
-                RTarget[2] = Vector3.SignedAngle(motionSource.ReferenceUp, Vector3.ProjectOnPlane(motionSource.TargetUp, motionSource.ReferenceRight), motionSource.ReferenceRight) / 90;
+                    RTarget[0] = Vector3.SignedAngle(planeRight, correctedRight, motionSource.ReferencePlaneNormal) / 180;
+                    RTarget[1] = -Vector3.SignedAngle(motionSource.ReferencePlaneNormal, Vector3.ProjectOnPlane(motionSource.TargetUp, planeForward), planeForward) / 90;
+                    RTarget[2] = Vector3.SignedAngle(motionSource.ReferencePlaneNormal, Vector3.ProjectOnPlane(motionSource.TargetUp, planeRight), planeRight) / 90;
+                }
+                else
+                {
+                    var correctedRight = Vector3.ProjectOnPlane(motionSource.TargetRight, motionSource.ReferenceUp);
+                    if (Vector3.Dot(correctedRight, motionSource.ReferenceRight) < 0)
+                        correctedRight -= 2 * Vector3.Project(correctedRight, motionSource.ReferenceRight);
+
+                    RTarget[0] = Vector3.SignedAngle(motionSource.ReferenceRight, correctedRight, motionSource.ReferenceUp) / 180;
+                    RTarget[1] = -Vector3.SignedAngle(motionSource.ReferenceUp, Vector3.ProjectOnPlane(motionSource.TargetUp, motionSource.ReferenceForward), motionSource.ReferenceForward) / 90;
+                    RTarget[2] = Vector3.SignedAngle(motionSource.ReferenceUp, Vector3.ProjectOnPlane(motionSource.TargetUp, motionSource.ReferenceRight), motionSource.ReferenceRight) / 90;
+                }
 
                 ETarget[0] = OutputV0CurveEditorSettings.Evaluate(XTarget, RTarget);
                 ETarget[1] = OutputA0CurveEditorSettings.Evaluate(XTarget, RTarget);

@@ -19,6 +19,7 @@ namespace ToySerialController.MotionSource
         public Vector3 TargetUp { get; private set; }
         public Vector3 TargetRight { get; private set; }
         public Vector3 TargetForward { get; private set; }
+        public bool RelativeToNormalPlane => false;
 
         private JSONStorableFloat SpeedSlider;
         private JSONStorableStringChooser AxisChooser, MotionTypeChooser;

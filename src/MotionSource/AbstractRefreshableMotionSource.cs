@@ -23,6 +23,7 @@ namespace ToySerialController.MotionSource
         public abstract Vector3 TargetUp { get; }
         public abstract Vector3 TargetRight { get; }
         public abstract Vector3 TargetForward { get; }
+        public abstract bool RelativeToNormalPlane { get; }
 
         public abstract bool Update();
         public abstract void StoreConfig(JSONNode config);

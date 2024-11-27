@@ -1,6 +1,8 @@
 ﻿using DebugUtils;
 using SimpleJSON;
+using System.Collections.Generic;
 using ToySerialController.UI;
+using ToySerialController.Utils;
 using UnityEngine;
 
 namespace ToySerialController.MotionSource
@@ -8,6 +10,8 @@ namespace ToySerialController.MotionSource
     public class CompositeMotionSource : AbstractRefreshableMotionSource
     {
         private UIDynamicButton TargetTitle, ReferenceTitle;
+        private bool _RelativeToNormalPlane;
+        protected JSONStorableStringChooser RotationReference;
 
         protected IMotionSourceReference Reference { get; }
         protected IMotionSourceTarget Target { get; }
@@ -24,6 +28,8 @@ namespace ToySerialController.MotionSource
         public override Vector3 TargetRight => Target.Right;
         public override Vector3 TargetForward => Target.Forward;
 
+        public override bool RelativeToNormalPlane => _RelativeToNormalPlane;
+
         public CompositeMotionSource(IMotionSourceReference reference, IMotionSourceTarget target)
         {
             Reference = reference;
@@ -32,12 +38,14 @@ namespace ToySerialController.MotionSource
 
         public override void RestoreConfig(JSONNode config)
         {
+            config.Restore(RotationReference);
             Reference.RestoreConfig(config);
             Target.RestoreConfig(config);
         }
 
         public override void StoreConfig(JSONNode config)
         {
+            config.Store(RotationReference);
             Reference.StoreConfig(config);
             Target.StoreConfig(config);
         }
@@ -60,6 +68,9 @@ namespace ToySerialController.MotionSource
 
         public override void CreateUI(IUIBuilder builder)
         {
+            var rotationReferences = new List<string> { "Penetrator", "Normal Plane" };
+            RotationReference = builder.CreatePopup("Plugin:MotionSourceRotationReference", "Rotation Reference\n(R0, R1, R2)", rotationReferences, "Penetrator", RotationReferenceChooserCallback);
+
             TargetTitle = builder.CreateDisabledButton("Target", new Color(1.0f, 1.0f, 1.0f, 0.075f), Color.white);
             TargetTitle.buttonText.fontStyle = FontStyle.Bold;
 
@@ -75,12 +86,17 @@ namespace ToySerialController.MotionSource
         public override void DestroyUI(IUIBuilder builder)
         {
             base.DestroyUI(builder);
+
+            builder.Destroy(RotationReference);
+
             Reference.DestroyUI(builder);
             builder.Destroy(ReferenceTitle);
 
             Target.DestroyUI(builder);
             builder.Destroy(TargetTitle);
         }
+
+        private void RotationReferenceChooserCallback(string referenceMode) => _RelativeToNormalPlane = referenceMode == "Normal Plane";
 
         protected override void RefreshButtonCallback()
         {
