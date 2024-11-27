@@ -54,11 +54,22 @@ namespace ToySerialController.MotionSource
         {
             if (Reference.Update() && Target.Update(Reference))
             {
-                DebugDraw.DrawSquare(ReferencePosition, ReferencePlaneNormal, ReferenceRight, Color.white, 0.33f);
-                DebugDraw.DrawTransform(ReferencePosition, ReferenceUp, ReferenceRight, ReferenceForward, 0.15f);
-                DebugDraw.DrawRay(ReferencePosition, ReferenceUp, ReferenceLength, Color.white);
-                DebugDraw.DrawLine(ReferencePosition, TargetPosition, Color.yellow);
-                DebugDraw.DrawTransform(TargetPosition, TargetUp, TargetRight, TargetForward, 0.15f);
+                if (DebugDraw.Enabled)
+                {
+                    var planeRight = Vector3.ProjectOnPlane(ReferenceRight, ReferencePlaneNormal).normalized;
+                    var planeForward = Vector3.ProjectOnPlane(ReferenceForward, ReferencePlaneNormal).normalized;
+
+                    if (RelativeToNormalPlane)
+                    {
+                        DebugDraw.DrawLine(ReferencePosition, ReferencePosition + ReferencePlaneNormal * .15f, Color.green);
+                        DebugDraw.DrawTransform(ReferencePosition, ReferencePlaneNormal, planeRight, planeForward, 0.15f);
+                    }
+                    else DebugDraw.DrawTransform(ReferencePosition, ReferenceUp, ReferenceRight, ReferenceForward, 0.15f);
+
+                    DebugDraw.DrawRay(ReferencePosition, ReferenceUp, ReferenceLength, Color.white);
+                    DebugDraw.DrawLine(ReferencePosition, TargetPosition, Color.yellow);
+                    DebugDraw.DrawTransform(TargetPosition, TargetUp, TargetRight, TargetForward, 0.15f);
+                }
 
                 return true;
             }

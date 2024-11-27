@@ -276,8 +276,15 @@ namespace ToySerialController
             var planeForward = Vector3.ProjectOnPlane(motionSource.ReferenceForward, motionSource.ReferencePlaneNormal).normalized;
             var planeRight = Vector3.ProjectOnPlane(motionSource.ReferenceRight, motionSource.ReferencePlaneNormal).normalized;
 
-            for (var i = 0; i < 5; i++)
-                DebugDraw.DrawCircle(Vector3.Lerp(motionSource.ReferencePosition, referenceEnding, i / 4.0f), motionSource.ReferenceUp, motionSource.ReferenceRight, Color.grey, radius);
+            if (DebugDraw.Enabled)
+            {
+                DebugDraw.DrawEllipse(motionSource.ReferencePosition, motionSource.ReferencePlaneNormal, planeForward, Color.yellow, RangeMaxL1Slider.val, RangeMaxL2Slider.val, 40);
+
+                var tangent = Vector3.ProjectOnPlane(motionSource.ReferenceRight, motionSource.ReferenceUp);
+
+                for (var i = 0; i < 5; i++)
+                    DebugDraw.DrawCircle(Vector3.Lerp(motionSource.ReferencePosition, referenceEnding, i / 4.0f), motionSource.ReferenceUp, tangent, Color.grey, radius);
+            }
 
             var t = Mathf.Clamp(Vector3.Dot(motionSource.TargetPosition - motionSource.ReferencePosition, motionSource.ReferenceUp), 0f, length);
             var closestPoint = motionSource.ReferencePosition + motionSource.ReferenceUp * t;
@@ -291,6 +298,13 @@ namespace ToySerialController
                     var diffOnPlane = Vector3.ProjectOnPlane(diffPosition, motionSource.ReferencePlaneNormal);
                     var rightOffset = Vector3.Project(diffOnPlane, planeRight);
                     var forwardOffset = Vector3.Project(diffOnPlane, planeForward);
+
+                    if (DebugDraw.Enabled)
+                    {
+                        DebugDraw.DrawLine(motionSource.ReferencePosition, motionSource.ReferencePosition + diffOnPlane, Color.yellow);
+                        DebugDraw.DrawLine(motionSource.TargetPosition, motionSource.ReferencePosition + diffOnPlane, Color.yellow);
+                    }
+
                     XTarget[1] = forwardOffset.magnitude * Mathf.Sign(Vector3.Dot(forwardOffset, planeForward));
                     XTarget[2] = rightOffset.magnitude * Mathf.Sign(Vector3.Dot(rightOffset, planeRight));
                 }
