@@ -79,8 +79,8 @@ namespace ToySerialController.MotionSource
             {
                 var rotation = Quaternion.Euler(NormalPlaneOverrideX.val, NormalPlaneOverrideY.val, NormalPlaneOverrideZ.val);
                 Right = rotation * _dildoAtom.transform.right;
-                Forward = rotation * _dildoAtom.transform.up;
-                PlaneNormal = rotation * _dildoAtom.transform.forward;
+                Forward = rotation * _dildoAtom.transform.forward;
+                PlaneNormal = rotation * _dildoAtom.transform.up;
             }
             else
             {
