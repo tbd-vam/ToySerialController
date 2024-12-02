@@ -14,6 +14,8 @@ namespace ToySerialController.MotionSource
         private JSONStorableFloat PenisBaseOffset;
         private JSONStorableBool FixedNormalPlane;
         private JSONStorableFloat NormalPlaneOverrideX, NormalPlaneOverrideY, NormalPlaneOverrideZ;
+        private JSONStorableAction AlignNormalPlaneAction;
+        private UIDynamicButton AlignNormalPlaneButton;
 
         private SuperController Controller => SuperController.singleton;
 
@@ -35,7 +37,10 @@ namespace ToySerialController.MotionSource
             NormalPlaneOverrideX = normalPlaneGroup.CreateSlider("MotionSource:FixedNormalPlaneRotationX", "X-Rotation", 0, -180, 180, true, true);
             NormalPlaneOverrideY = normalPlaneGroup.CreateSlider("MotionSource:FixedNormalPlaneRotationY", "Y-Rotation", 0, -180, 180, true, true);
             NormalPlaneOverrideZ = normalPlaneGroup.CreateSlider("MotionSource:FixedNormalPlaneRotationZ", "Z-Rotation", 0, -180, 180, true, true);
+            AlignNormalPlaneButton = normalPlaneGroup.CreateButton("Align normal plane", AlignNormalPlane);
             normalPlaneGroup.SetVisible(FixedNormalPlane.val);
+
+            AlignNormalPlaneAction = UIManager.CreateAction("Align normal plane", AlignNormalPlane);
 
             FindMales();
         }
@@ -48,6 +53,9 @@ namespace ToySerialController.MotionSource
             builder.Destroy(NormalPlaneOverrideX);
             builder.Destroy(NormalPlaneOverrideY);
             builder.Destroy(NormalPlaneOverrideZ);
+            builder.Destroy(AlignNormalPlaneButton);
+
+            UIManager.RemoveAction(AlignNormalPlaneAction);
         }
 
         public void StoreConfig(JSONNode config)
@@ -119,6 +127,23 @@ namespace ToySerialController.MotionSource
             }
 
             return true;
+        }
+
+        private void AlignNormalPlane()
+        {
+            var pelvisRight = _maleAtom.GetComponentByName<Collider>("AutoColliderpelvisFR3Joint")?.transform;
+            var pelvidLeft = _maleAtom.GetComponentByName<Collider>("AutoColliderpelvisFL3Joint")?.transform;
+            var pelvisMid = _maleAtom.GetComponentByName<Transform>("AutoColliderpelvisF1")?.GetComponentByName<Collider>("AutoColliderpelvisF4Joint")?.transform;
+
+            if (pelvisRight == null || pelvidLeft == null || pelvisMid == null)
+                return;
+
+            var planeNormal = -Vector3.Cross(pelvisMid.position - pelvidLeft.position, pelvisMid.position - pelvisRight.position).normalized;
+            var angles = Quaternion.FromToRotation(_maleAtom.transform.up, planeNormal).eulerAngles;
+
+            NormalPlaneOverrideX.val = angles.x > 180 ? angles.x - 360 : angles.x;
+            NormalPlaneOverrideY.val = angles.y > 180 ? angles.y - 360 : angles.y;
+            NormalPlaneOverrideZ.val = angles.z > 180 ? angles.z - 360 : angles.z;
         }
 
         private void FindMales(string defaultUid = null)
