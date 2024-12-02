@@ -1,5 +1,4 @@
-﻿using DebugUtils;
-using SimpleJSON;
+﻿using SimpleJSON;
 using System.Linq;
 using ToySerialController.UI;
 using ToySerialController.Utils;
@@ -7,52 +6,73 @@ using UnityEngine;
 
 namespace ToySerialController.MotionSource
 {
-    public class MaleReference : AbstractReference
+    public class MaleReference : IMotionSourceReference
     {
         private Atom _maleAtom;
 
         private JSONStorableStringChooser MaleChooser;
         private JSONStorableFloat PenisBaseOffset;
+        private JSONStorableBool FixedNormalPlane;
+        private JSONStorableFloat NormalPlaneOverrideX, NormalPlaneOverrideY, NormalPlaneOverrideZ;
 
         private SuperController Controller => SuperController.singleton;
 
-        public override void CreateUI(IUIBuilder builder)
+        public Vector3 Position { get; private set; }
+        public Vector3 Up { get; private set; }
+        public Vector3 Right { get; private set; }
+        public Vector3 Forward { get; private set; }
+        public float Length { get; private set; }
+        public float Radius { get; private set; }
+        public Vector3 PlaneNormal { get; private set; }
+
+        public void CreateUI(IUIBuilder builder)
         {
             MaleChooser = builder.CreatePopup("MotionSource:Male", "Select Male", null, null, MaleChooserCallback);
             PenisBaseOffset = builder.CreateSlider("MotionSource:PenisBaseOffset", "Penis base offset", 0, -0.05f, 0.05f, true, true);
 
-            base.CreateUI(builder);
+            var normalPlaneGroup = new UIGroup(builder);
+            FixedNormalPlane = builder.CreateToggle("MotionSource:FixedNormalPlane", "Fixed normal plane", false, v => normalPlaneGroup.SetVisible(v), false);
+            NormalPlaneOverrideX = normalPlaneGroup.CreateSlider("MotionSource:FixedNormalPlaneRotationX", "X-Rotation", 0, -180, 180, true, true);
+            NormalPlaneOverrideY = normalPlaneGroup.CreateSlider("MotionSource:FixedNormalPlaneRotationY", "Y-Rotation", 0, -180, 180, true, true);
+            NormalPlaneOverrideZ = normalPlaneGroup.CreateSlider("MotionSource:FixedNormalPlaneRotationZ", "Z-Rotation", 0, -180, 180, true, true);
+            normalPlaneGroup.SetVisible(FixedNormalPlane.val);
 
             FindMales();
         }
 
-        public override void DestroyUI(IUIBuilder builder)
+        public void DestroyUI(IUIBuilder builder)
         {
             builder.Destroy(MaleChooser);
             builder.Destroy(PenisBaseOffset);
-            
-            base.DestroyUI(builder);
+            builder.Destroy(FixedNormalPlane);
+            builder.Destroy(NormalPlaneOverrideX);
+            builder.Destroy(NormalPlaneOverrideY);
+            builder.Destroy(NormalPlaneOverrideZ);
         }
 
-        public override void StoreConfig(JSONNode config)
+        public void StoreConfig(JSONNode config)
         {
             config.Store(MaleChooser);
             config.Store(PenisBaseOffset);
-            
-            base.StoreConfig(config);
+            config.Store(FixedNormalPlane);
+            config.Store(NormalPlaneOverrideX);
+            config.Store(NormalPlaneOverrideY);
+            config.Store(NormalPlaneOverrideZ);
         }
 
-        public override void RestoreConfig(JSONNode config)
+        public void RestoreConfig(JSONNode config)
         {
             config.Restore(MaleChooser);
             config.Restore(PenisBaseOffset);
-            
-            base.RestoreConfig(config);
+            config.Restore(FixedNormalPlane);
+            config.Restore(NormalPlaneOverrideX);
+            config.Restore(NormalPlaneOverrideY);
+            config.Restore(NormalPlaneOverrideZ);
 
             FindMales(MaleChooser.val);
         }
 
-        public override bool Update()
+        public bool Update()
         {
             if (_maleAtom == null || !_maleAtom.on)
                 return false;
@@ -124,6 +144,6 @@ namespace ToySerialController.MotionSource
             MaleChooser.valNoCallback = _maleAtom == null ? "None" : s;
         }
 
-        public override void Refresh() => FindMales(MaleChooser.val);
+        public void Refresh() => FindMales(MaleChooser.val);
     }
 }
