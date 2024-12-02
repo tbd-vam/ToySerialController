@@ -131,15 +131,18 @@ namespace ToySerialController.MotionSource
 
         private void AlignNormalPlane()
         {
+            var gen1Collider = _maleAtom.GetComponentByName<CapsuleCollider>("AutoColliderGen1Hard");
             var pelvisRight = _maleAtom.GetComponentByName<Collider>("AutoColliderpelvisFR3Joint")?.transform;
             var pelvidLeft = _maleAtom.GetComponentByName<Collider>("AutoColliderpelvisFL3Joint")?.transform;
             var pelvisMid = _maleAtom.GetComponentByName<Transform>("AutoColliderpelvisF1")?.GetComponentByName<Collider>("AutoColliderpelvisF4Joint")?.transform;
 
-            if (pelvisRight == null || pelvidLeft == null || pelvisMid == null)
+            if (gen1Collider == null || pelvisRight == null || pelvidLeft == null || pelvisMid == null)
                 return;
 
             var planeNormal = -Vector3.Cross(pelvisMid.position - pelvidLeft.position, pelvisMid.position - pelvisRight.position).normalized;
-            var angles = Quaternion.FromToRotation(_maleAtom.transform.up, planeNormal).eulerAngles;
+            var forward = Vector3.ProjectOnPlane(gen1Collider.transform.right, planeNormal);
+            var rotation = Quaternion.Inverse(_maleAtom.transform.rotation) * Quaternion.LookRotation(forward, planeNormal);
+            var angles = rotation.eulerAngles;
 
             NormalPlaneOverrideX.val = angles.x > 180 ? angles.x - 360 : angles.x;
             NormalPlaneOverrideY.val = angles.y > 180 ? angles.y - 360 : angles.y;
