@@ -72,9 +72,9 @@ namespace ToySerialController.MotionSource
             Radius = midCollider.radius;
 
             Up = (tipPosition - midPosition).normalized;
-            Right = Vector3.ProjectOnPlane(_dildoAtom.transform.right, Up).normalized;
+            Right = Vector3.ProjectOnPlane(_dildoAtom.mainController.transform.right, Up).normalized;
             Forward = -Vector3.Cross(Up, Right);
-            PlaneNormal = _dildoAtom.transform.forward;
+            PlaneNormal = _dildoAtom.mainController.transform.forward;
 
             return true;
         }
